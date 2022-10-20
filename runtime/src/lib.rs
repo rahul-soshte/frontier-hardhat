@@ -8,17 +8,30 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+//* Encoding and Decoding of Data */
 use codec::{Decode, Encode};
+
+//* Okay so the fee Calculator */
 use pallet_evm::FeeCalculator;
 use pallet_grandpa::{
 	fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList,
 };
+
+//* */ What is sp_api about
+//* interface between runtime and node */
 use sp_api::impl_runtime_apis;
+
+//* Primitives for Aura */
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
+
+//* What does sp_core do
+//* Substrate Data Types */
 use sp_core::{
 	crypto::{ByteArray, KeyTypeId},
 	OpaqueMetadata, H160, H256, U256,
 };
+//* What does sp_runtime do
+//* Data Types for Substrate Runtime */
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{
@@ -28,6 +41,9 @@ use sp_runtime::{
 	transaction_validity::{TransactionSource, TransactionValidity, TransactionValidityError},
 	ApplyExtrinsicResult, MultiSignature,
 };
+
+//* What does PhantomData do
+//* It owns a type T, but it actually doesn't */
 use sp_std::{marker::PhantomData, prelude::*};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -35,6 +51,7 @@ use sp_version::RuntimeVersion;
 
 // A few exports that help ease life for downstream crates.
 use fp_rpc::TransactionStatus;
+
 pub use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{ConstU32, ConstU8, FindAuthor, KeyOwnerProofSystem, Randomness},
@@ -44,13 +61,26 @@ pub use frame_support::{
 	},
 	ConsensusEngineId, StorageValue,
 };
+
+//* Balances for the Pallet */
 pub use pallet_balances::Call as BalancesCall;
+
+//* Emulation of Ethereum like block processing */
 use pallet_ethereum::{Call::transact, Transaction as EthereumTransaction};
+
+//* Allows EVM code to be excuted */
 use pallet_evm::{Account as EVMAccount, EnsureAddressTruncated, HashedAddressMapping, Runner};
+//* Gettin and Setting the Onchain Time */
 pub use pallet_timestamp::Call as TimestampCall;
+//*  */
 use pallet_transaction_payment::CurrencyAdapter;
+
+//* Complex Storage Builder stuff */
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
+
+//* PPM means out of a million */
+//* PPB mean out of a million */
 pub use sp_runtime::{Perbill, Permill};
 
 mod precompiles;
@@ -82,6 +112,7 @@ pub type Hash = sp_core::H256;
 /// Digest item type.
 pub type DigestItem = generic::DigestItem;
 
+//? Okay what are these for
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
 /// of data like extrinsics, allowing for them to continue syncing the network through upgrades
@@ -98,6 +129,7 @@ pub mod opaque {
 	/// Opaque block identifier type.
 	pub type BlockId = generic::BlockId<Block>;
 
+	//? I don't know what this means
 	impl_opaque_keys! {
 		pub struct SessionKeys {
 			pub aura: Aura,
@@ -105,7 +137,8 @@ pub mod opaque {
 		}
 	}
 }
-
+//* Okay Runtime Version
+//* Just like some Runtime Metadata */
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("node-frontier-template"),
 	impl_name: create_runtime_str!("node-frontier-template"),
@@ -117,8 +150,10 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	state_version: 1,
 };
 
+//* Okay so 6 millisec per block */
 pub const MILLISECS_PER_BLOCK: u64 = 6000;
 
+//* That is the slot duration */
 pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
 
 // Time is measured by number of blocks.
@@ -135,6 +170,7 @@ pub fn native_version() -> NativeVersion {
 	}
 }
 
+//? What the hell is Dispatch Ratio
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 
 parameter_types! {
@@ -202,10 +238,12 @@ impl frame_system::Config for Runtime {
 	type MaxConsumers = ConstU32<16>;
 }
 
+//* MaxAuthorities can be 100 */
 parameter_types! {
 	pub const MaxAuthorities: u32 = 100;
 }
 
+//* Uh huh */
 impl pallet_aura::Config for Runtime {
 	type AuthorityId = AuraId;
 	type DisabledValidators = ();
@@ -236,6 +274,7 @@ parameter_types! {
 	pub const MinimumPeriod: u64 = SLOT_DURATION / 2;
 }
 
+//* Okay you need to implement a Config Trait for the Runtime for each pallet */
 impl pallet_timestamp::Config for Runtime {
 	/// A timestamp: milliseconds since the unix epoch.
 	type Moment = u64;
@@ -465,6 +504,7 @@ impl fp_self_contained::SelfContainedCall for Call {
 
 	fn validate_self_contained(&self, info: &Self::SignedInfo) -> Option<TransactionValidity> {
 		match self {
+			//? What is Call here
 			Call::Ethereum(call) => call.validate_self_contained(info),
 			_ => None,
 		}
@@ -480,6 +520,7 @@ impl fp_self_contained::SelfContainedCall for Call {
 		}
 	}
 
+	//? Okay now apply_self_contained here
 	fn apply_self_contained(
 		self,
 		info: Self::SignedInfo,
@@ -493,21 +534,26 @@ impl fp_self_contained::SelfContainedCall for Call {
 	}
 }
 
+//? Okay what are runtime benchmarks
 #[cfg(feature = "runtime-benchmarks")]
 #[macro_use]
 extern crate frame_benchmarking;
 
+//? Okay what are these benchmarks here
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
 	define_benchmarks!([pallet_evm, EVM]);
 }
 
+//? Okay runtime has apis now
+//? Okay
 impl_runtime_apis! {
 	impl sp_api::Core<Block> for Runtime {
 		fn version() -> RuntimeVersion {
 			VERSION
 		}
 
+		//* So executive handles coordination with the different modules */
 		fn execute_block(block: Block) {
 			Executive::execute_block(block)
 		}
@@ -516,7 +562,8 @@ impl_runtime_apis! {
 			Executive::initialize_block(header)
 		}
 	}
-
+	
+	//* Metadata of the Runtime */
 	impl sp_api::Metadata<Block> for Runtime {
 		fn metadata() -> OpaqueMetadata {
 			OpaqueMetadata::new(Runtime::metadata().into())
@@ -536,6 +583,7 @@ impl_runtime_apis! {
 			data.create_extrinsics()
 		}
 
+		//? what is inherents here really
 		fn check_inherents(
 			block: Block,
 			data: sp_inherents::InherentData,
@@ -554,12 +602,14 @@ impl_runtime_apis! {
 		}
 	}
 
+	//It is an API
 	impl sp_offchain::OffchainWorkerApi<Block> for Runtime {
 		fn offchain_worker(header: &<Block as BlockT>::Header) {
 			Executive::offchain_worker(header)
 		}
 	}
 
+	//* Aura API is involved here
 	impl sp_consensus_aura::AuraApi<Block, AuraId> for Runtime {
 		fn slot_duration() -> sp_consensus_aura::SlotDuration {
 			sp_consensus_aura::SlotDuration::from_millis(Aura::slot_duration())
@@ -576,6 +626,7 @@ impl_runtime_apis! {
 		}
 	}
 
+	//? Chain ID Return
 	impl fp_rpc::EthereumRuntimeRPCApi<Block> for Runtime {
 		fn chain_id() -> u64 {
 			<Runtime as pallet_evm::Config>::ChainId::get()
@@ -593,6 +644,7 @@ impl_runtime_apis! {
 			EVM::account_codes(address)
 		}
 
+		//* Author */
 		fn author() -> H160 {
 			<pallet_evm::Pallet<Runtime>>::find_author()
 		}
@@ -676,7 +728,8 @@ impl_runtime_apis! {
 		fn current_transaction_statuses() -> Option<Vec<TransactionStatus>> {
 			Ethereum::current_transaction_statuses()
 		}
-
+		
+		//* Return the current block */
 		fn current_block() -> Option<pallet_ethereum::Block> {
 			Ethereum::current_block()
 		}
@@ -780,6 +833,7 @@ impl_runtime_apis! {
 		}
 	}
 
+	//? What is metadata about here
 	#[cfg(feature = "runtime-benchmarks")]
 	impl frame_benchmarking::Benchmark<Block> for Runtime {
 		fn benchmark_metadata(extra: bool) -> (
@@ -796,6 +850,7 @@ impl_runtime_apis! {
 			return (list, storage_info)
 		}
 
+		//* Dispatch Benchmark */
 		fn dispatch_benchmark(
 			config: frame_benchmarking::BenchmarkConfig
 		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
