@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>📜 NFT Letter ✍️</title>
+</head>
+<style>
+  input {
+    display: block;
+    margin-bottom: 12px;
+    font-family: monospace;
+  }
+</style>
+
+<body style="font-family:monospace;background-color:#EAEAEA;">
+  <center>
+    <h1 style="font-size:5vw">📜✍️</h1>
+    <label for="title">Title</label>
+    <input type="text" id="title" size="55" placeholder="e.g.: 𝔥𝔢𝔩𝔩𝔬 𝔴𝔬𝔯𝔩𝔡" />
+
+    <label for="firstPage">First Page:</label>
+    <br>
+    <textarea id="firstPage" rows="4" cols="60" placeholder="e.g.: 𝔯𝔬𝔰𝔢𝔰 𝔞𝔯𝔢 𝔯𝔢𝔡"></textarea>
+    <br><br>
+
+    <label for="author">Author Signature:</label>
+    <input type="text" id="author" size="55" placeholder="e.g.: 𝓢𝓱𝓪𝓴𝓮𝓼𝓹𝓮𝓪𝓻𝓮" />
+
+    <button onclick="App.writeLetter()">Write Letter</button>
+    <br>
+    <br>
+
+    <span id="writtenLetter"></span>
+
+    <br><br>
+    <table class="tg">
+    <tbody>
+      <tr>
+        <td>
+          <form action="write.html">
+            <input type="submit" value="Back"/>
+          </form>
+        </td>
+        <td>
+          <form action="manage.html">
+            <input type="submit" value="Manage"/>
+          </form>
+        </td>
+        <td>
+          <form action="read.html">
+            <input type="submit" value="Read"/>
+          </form>
+        </td>
+      </tr>
+    </tbody>
+    </table>
+  </center>
+
+  <br>
+  <script src="writeLetter.js"></script>
+</body>
+</html>
